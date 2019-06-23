@@ -45,7 +45,13 @@ def diff_times_in_seconds(t1, t2):
     h2, m2, s2 = t2.hour, t2.minute, t2.second
     t1_secs = s1 + 60 * (m1 + 60*h1)
     t2_secs = s2 + 60 * (m2 + 60*h2)
-    return( t2_secs - t1_secs)
+    return t2_secs - t1_secs
+
+def getSec(t1):
+    # caveat emptor - assumes t1 & t2 are python times, on the same day and t2 is after t1
+    h1, m1, s1 = t1.hour, t1.minute, t1.second
+    t1_secs = s1 + 60 * (m1 + 60*h1)
+    return t1_secs
 
 def printPic(username):
     username = username.lower()
@@ -78,6 +84,16 @@ def printPic(username):
     file.close()
     os.system('/bin/cat ~/goinfre/image')
 
+def getLastUptime(json_res):
+    if not json_res[0]['end_at']:
+        json_res[0]['end_at'] = time.strftime('%H:%M:%S')
+    beginhour = str(json_res[0]['begin_at'])[11:19]
+    beginhour_object = datetime.strptime(beginhour, '%H:%M:%S')
+    endhour = time.strftime('%H:%M:%S')
+    endhour_object = datetime.strptime(endhour, '%H:%M:%S')
+    return str(dt.timedelta(seconds=(diff_times_in_seconds(beginhour_object, endhour_object))))
+
+
 def displayUptime(username, data):
     username = username.lower()
     response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
@@ -89,12 +105,32 @@ def displayUptime(username, data):
     if json_res[0] and json_res[0]['end_at']:
         disconnectedUser(username)
     else:
-        beginhour = str(json_res[0]['begin_at'])[11:19]
-        endhour = time.strftime('%H:%M:%S')
-        endhour_object = datetime.strptime(endhour, '%H:%M:%S')
-        beginhour_object = datetime.strptime(beginhour, '%H:%M:%S')
-        uptime = str(dt.timedelta(seconds=(diff_times_in_seconds(beginhour_object, endhour_object))))
-        print(username + '\'s uptime: ' + uptime)
+        print(username + '\'s uptime: ' + getLastUptime(json_res))
+
+def displayLogtime(username, data, offset):
+    username = username.lower()
+    response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
+    token = response.text[17:81]
+    req = "https://api.intra.42.fr/v2/users/" + username + "/locations?access_token=" + token
+    json_res = json.loads(requests.get(req).text)
+    if not json_res:
+        disconnectedUser(username)
+    if json_res[0] and json_res[0]['end_at']:
+        disconnectedUser(username)
+    else:
+        if offset == 0: #Daily logtime
+            today = time.strftime('%Y-%m-%d')
+            secs = 0
+            for cid in json_res:
+                if cid['begin_at'][0:10] == today and cid['end_at']:
+                    begin = datetime.strptime(cid['begin_at'][11:19], '%H:%M:%S')
+                    end = datetime.strptime(cid['end_at'][11:19], '%H:%M:%S')
+                    time_elapsed = diff_times_in_seconds(begin, end)
+                    secs = secs + time_elapsed
+            todaylog = str(dt.timedelta(seconds=(int(getSec(datetime.strptime(getLastUptime(json_res), '%H:%M:%S'))) + int(secs))))
+            print(username + '\'s daily logtime: ' + str(todaylog))
+        #elif offset == 1: #Weekly logtime
+            #A FAIRE
 
 def mainHandler(data):
     response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
@@ -116,6 +152,8 @@ def mainHandler(data):
         time.sleep(0.5)
     if args.uptime:
         displayUptime(args.uptime, data)
+    elif args.daily:
+        displayLogtime(args.daily, data, 0)
     elif args.user:
         userPrint(host, user, maxlen)
     elif args.host:
@@ -130,6 +168,7 @@ def mainHandler(data):
 parser = argparse.ArgumentParser()
 parser.add_argument("-host", help="Sort results by hostname", action="store_true")
 parser.add_argument("-up", "--uptime", help="Display user's uptime", type=str, metavar="[USER]")
+parser.add_argument("-d", "--daily", help="Display user's daily logtime", type=str, metavar="[USER]")
 parser.add_argument("-u", "--user", help="Sort results by login name", action="store_true")
 parser.add_argument("-p", "--picture", help="Display ASCII-art picture of the user", type=str, metavar="[USER]")
 parser.add_argument("-l", "--loop", help="Set the loops factor (Default is 5, meaning 5x100 max users per search). Decreasing this number may improve wait time", type=int, choices=range(1, 30), metavar="[1-30]", default=5)
