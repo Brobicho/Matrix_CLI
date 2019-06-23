@@ -127,7 +127,7 @@ def displayLogtime(username, data, offset):
                     end = datetime.strptime(cid['end_at'][11:19], '%H:%M:%S')
                     time_elapsed = diff_times_in_seconds(begin, end)
                     secs = secs + time_elapsed
-            todaylog = str(dt.timedelta(seconds=(int(getSec(datetime.strptime(getLastUptime(json_res), '%H:%M:%S'))) + int(secs))))
+            todaylog = str(dt.timedelta(seconds=(int(getSec(datetime.strptime(getLastUptime(json_res), '%H:%M:%S'))-3600*2) + int(secs))))
             print(username + '\'s daily logtime: ' + str(todaylog))
         #elif offset == 1: #Weekly logtime
             #A FAIRE
