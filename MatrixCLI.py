@@ -78,9 +78,6 @@ def printPic(username):
     file.close()
     os.system('/bin/cat ~/goinfre/image')
 
-class E(Exception):
-    pass
-
 def displayUptime(username, data):
     username = username.lower()
     response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
@@ -129,7 +126,6 @@ def mainHandler(data):
 
 ## PROGRAM START ##
 
-
 # Parsing
 parser = argparse.ArgumentParser()
 parser.add_argument("-host", help="Sort results by hostname", action="store_true")
@@ -142,10 +138,9 @@ args = parser.parse_args()
 # API credentials
 data = {
   'grant_type': 'client_credentials',
-  'client_id': 'ba078720a2d19d22aa671fe51692d426519232bebb72cfb33f35b760d0126d2b',
-  'client_secret': '61f5d3cca34acf83f284568b4543d03b4479617160c5dbd7c42303425f1d943c'
+  'client_id': '007ea7439a9b92d792c0ea3dafe27b8cc4b611cbee85351b6900de945a4de13f',
+  'client_secret': '73e6a5f3fff507fea7013d4260e804881651a45dd34b7ced58038b73977042e8'
 }
-
 
 # Launcher
 if not args.picture:
