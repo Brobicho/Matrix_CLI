@@ -177,8 +177,8 @@ args = parser.parse_args()
 # API credentials
 data = {
   'grant_type': 'client_credentials',
-  'client_id': '007ea7439a9b92d792c0ea3dafe27b8cc4b611cbee85351b6900de945a4de13f',
-  'client_secret': '73e6a5f3fff507fea7013d4260e804881651a45dd34b7ced58038b73977042e8'
+  'client_id': 'YOUR_API_CLIENT_ID_HERE',
+  'client_secret': 'YOUR_API_SECRET_ID_HERE'
 }
 
 # Launcher
